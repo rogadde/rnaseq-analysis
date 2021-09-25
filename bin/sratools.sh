@@ -13,7 +13,6 @@ if [[ $# -ne 2 ]]; then
   exit 1
 fi
 
-<<<<<<< HEAD
 acc_list="$1"
 thread="$2"
 
@@ -42,17 +41,3 @@ done < "${acc_list}"
 
 # Delete symlink once all sra files have been converted 
 unlink ../data/sra
-=======
-while read accession || [ -n "$accession" ]
-do
-	if [ -e "${accession}.sra" -a -e "${accession}"*.fastq ]
-	then
-		continue
-	else 
-		# .sra files output in directory specified in config: ~/ncbi/public/sra
-		prefetch "$accession"
-		# fasterq-dump should automatically find accession in public user-repository
-		fasterq-dump "$accession" --split-3 --skip-technical --outdir ~/data/Pan_TranscriptomicProfiling/fastq
-	fi
-done < $1
->>>>>>> f1e89b02234fd209217febba75f9ea366d247a9a
