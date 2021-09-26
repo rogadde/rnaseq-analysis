@@ -34,7 +34,9 @@ while read accession; do
       && rm -f ../data/sra/"${accession}.sra"; } \
       &>> ../data/"accession_log.txt"
     if [[ $? -ne 0 ]]; then
-      exit 1
+      echo "Error: Failed to download and convert ${accession} successfully" \
+        >> ../data/"accession_log.txt"
+      echo "{accession}" >> ../data/"failed_acc.txt"
     fi
   fi
 done < "${acc_list}"
