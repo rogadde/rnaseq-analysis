@@ -10,6 +10,11 @@
 # TODO: Make more general for future use. Create file structure instead of hard
 # coding existing paths.
 
+if [[ $# -ne 2 ]]; then
+  echo "Incorrect number of arguments"
+  exit 1
+fi
+
 for file in fastq/*_1.fastq.gz; do
   read=$(basename "${file}" _1.fastq.gz)
   trimmomatic PE -threads "$1" -summary filtered/trimsum.txt \
