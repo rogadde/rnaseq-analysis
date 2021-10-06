@@ -17,9 +17,10 @@ fi
 
 for file in fastq/*_1.fastq.gz; do
   read=$(basename "${file}" _1.fastq.gz)
-  trimmomatic PE -threads "$1" -summary filtered/trimsum.txt \
-    fastq/"${read}"_1.fastq.gz fastq/"${read}"_2.fastq.gz \
-    filtered/"${read}"_1P.trim.fastq.gz filtered/"${read}"_1U.trim.fastq.gz \
-    filtered/"${read}"_2P.trim.fastq.gz filtered/"${read}"_2U.trim.fastq.gz \
-    ILLUMINACLIP:"$2":2:30:10 SLIDINGWINDOW:4:20 MINLEN:25
+  trimmomatic PE -threads "$1" \
+    fastq/"${read}_1.fastq.gz" fastq/"${read}_2.fastq.gz" \
+    filtered/"${read}_1P.trim.fastq.gz" filtered/"${read}_1U.trim.fastq.gz" \
+    filtered/"${read}_2P.trim.fastq.gz" filtered/"${read}_2U.trim.fastq.gz" \
+    ILLUMINACLIP:"$2":2:30:10 SLIDINGWINDOW:4:20 MINLEN:25 \
+    2> filtered_logs/"${read}_trim.log"
 done
