@@ -1,41 +1,39 @@
 #!/bin/bash
 #
 # Author: Rohini Gadde
-# Usage: ../bin/star.sh $1 $2 $3 $4 (run in data directory of project)
+# Usage: <path>/star.sh $1 $2 $3
 #   This script aligns trimmed (paired) reads to a reference genome. It assumes
-# the genome indices have already been generated.
+# the genome indices have already been generated. Alignments are output into 
+# subdirectories labelled by accession IDs.
 # 1 - Number of threads
-# 2 - Path to accession list
+# 2 - Path to input file directory (no trailing slash)
 # 3 - Path to genome directory
-# 4 - Path to input file directory (no trailing slash)
 
-if [[ $# -ne 4 ]]; then
-  echo "Incorrect number of arguments"
+if [[ $# -ne 3 ]]; then
+  echo "Incorrect number of arguments. See usage."
   exit 1
 fi
 
 thread="$1"
-srr_list="$2"
+dir_in="$2"
 genome_dir="$3"
-dir_in="$4"
 
-acc_to_list () {
-  acc_list=()
-  while read acc; do
-    acc_list+=("${acc}")
-  done < "${srr_list}"
-}
-
-acc_to_list
-for ((i=0,j=1; i<${#acc_list[@]}; i+=3,j++)); do
-  rep1=${acc_list[$i]}
-  rep2=${acc_list[$((i+1))]}
-  rep3=${acc_list[$((i+2))]}
+# Loop over trimmed reads, aligning each read pair to the reference genome
+for file in "${dir_in}"/*_1P.trim.fastq.gz; do
+  read1=$(basename "${file}")
+  acc=$(basename "${read1}" _1P.trim.fastq.gz)
+  read2=$(basename "${file}" _1P.trim.fastq.gz)
+  read2+="_2P.trim.fastq.gz"
   
-  STAR --runMode alignReads --runThread "${thread}" --genomeDir "${genome_dir}" \
-  --readFilesCommand zcat --readFilesIn \
-  ${dir_in}/"${rep1}_1P"*,${dir_in}/"${rep2}_1P"*,${dir_in}/"${rep3}_1P"* \
-  ${dir_in}/"${rep1}_2P"*,${dir_in}/"${rep2}_2P"*,${dir_in}/"${rep3}_2P"* \
-  --outFileNamePrefix STAR/s${j} --outSAMtype BAM Unsorted SortedByCoordinate \
+  if [[ -d "STAR/${acc}/" ]]; then
+    rm -r "STAR/${acc}/" # Remove directory if it already exists
+  fi
+  mkdir "STAR/${acc}/"
+  
+  STAR --runMode alignReads --runThreadN "${thread}" --genomeDir "${genome_dir}" \
+  --readFilesCommand zcat --genomeLoad LoadAndKeep --limitBAMsortRAM 150000000000 \
+  --readFilesIn "${dir_in}/${read1}" "${dir_in}/${read2}" \
+  --outFileNamePrefix "STAR/${acc}/${acc}" \
+  --outSAMtype BAM Unsorted SortedByCoordinate \
   --quantMode TranscriptomeSAM
 done  
