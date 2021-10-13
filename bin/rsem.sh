@@ -24,9 +24,15 @@ rsem-prepare-reference --gtf "${gtf}" "${fasta}" "${ref}"
 
 # Calculate expression levels for each alignment. Input path is the output of
 # star.sh.
-for acc in STAR/SRR*; do
+for dir in STAR/SRR*; do
+  acc=$(basename "${dir}")
+  
+  if [[ -d "rsem/${acc}/" ]]; then
+    rm -r "rsem/${acc}/" # Clear any existing directories (reset)
+  fi
+  mkdir "rsem/${acc}/"
+  
   rsem-calculate-expression --alignments --paired-end --no-bam-output \
   -p "${thread}" STAR/${acc}/${acc}Aligned.toTranscriptome.out.bam "${ref}" \
-  rsem/${acc}/${acc} \
-  &> rsem/rsem.log
+  rsem/${acc}/${acc}
 done
