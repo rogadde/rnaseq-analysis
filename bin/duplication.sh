@@ -8,7 +8,7 @@
 # https://github.com/ssayols/dupRadar
 # http://bioconductor.org/packages/release/bioc/vignettes/dupRadar/inst/doc/dupRadar.html
 #
-# Usage: ./dupRadar.sh $1 $2 $3 $4 $5
+# Usage: ./dupRadar.sh $1 $2 $3 $4
 #   This script marks alignments for PCR duplicates then uses those marked
 # marked alignments as input to dupRadar, which generates plots about the
 # sequence duplication levels.
