@@ -15,8 +15,7 @@
 # 1 - gtf file
 # 2 - strandedness (0|1|2)
 # 3 - paired-end? (TRUE|FALSE)
-# 4 - output directory
-# 5 - number of threads
+# 4 - number of threads
 
 library(dupRadar)
 
@@ -29,23 +28,17 @@ gtf <- args[1]
 stranded <- args[2]
 # is a paired end experiment
 paired   <- args[3]
-# output directory
-outdir   <- args[4]
 # number of threads to be used
-threads  <- args[5]
+threads  <- args[4]
 
-if(length(args) != 5) { 
+if(length(args) != 4) { 
   stop (paste0("Usage: ./dupRadar.sh <file.bam> <genes.gtf> ",
                "<stranded=[0(no)|1(yes)|2(reverse)]> paired=[TRUE|FALSE] ",
-               "outdir=./ threads=1"))
+               "threads=1"))
 }
 
 if(!file.exists(gtf)) {
   stop(paste("File",gtf,"does NOT exist"))
-}
-
-if(!file.exists(outdir)) { 
-  stop(paste("Dir",outdir,"does NOT exist"))
 }
 
 if(is.na(stranded) | !(grepl("0|1|2",stranded))) {
@@ -62,14 +55,18 @@ if(is.na(threads)) {
 
 # end command line parsing
 
+# path based on previous scripts 
 files <- list.files(path="./STAR", pattern="sortedByCoord", full.names=TRUE,
   recursive=TRUE)
+  
 for (alignment in files) {
   # analyze duprates and create plots
   cat("Processing file ", bam, " with GTF ", gtf, "\n")
   
   # coordinate-sorted bam file to analyze
   bam <- alignment
+  outdir <- dirname(bam)
+  
   # mark duplicates with BamUtil
   bamDuprm <- markDuplicates(dupremover="bamutil",
                  bam,
