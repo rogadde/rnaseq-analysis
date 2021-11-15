@@ -1,0 +1,107 @@
+# Run ImpulseDE2 on command line
+
+library(tximport)
+
+dir <- "../data"
+list.files(dir)
+
+samples <- read.table(file.path(dir, "metadata.txt"), sep = ",", header = TRUE)
+head(samples)
+
+files <- file.path(dir, "rsem", samples$Run, paste0(samples$Run, ".genes.results"))
+names(files) <- paste0("SRR10079", 579:638)
+txi <- tximport(files, type = "rsem", txIn = FALSE, txOut = FALSE)
+head(txi$counts)
+
+# microglia samples: SRR10079579 - SRR10079608
+micro <- txi$counts[,1:30]
+head(micro)
+
+# astrocyte samples: SRR10079609 - SRR10079638
+astro <- txi$counts[,31:60]
+head(astro)
+
+micro_info <- read.table(file.path(dir, "microglia_info.txt"), header = TRUE)
+astro_info <- read.table(file.path(dir, "astrocyte_info.txt"), header = TRUE)
+
+head(micro_info)
+head(astro_info)
+
+library(ImpulseDE2)
+
+microImpulseDE2 <- runImpulseDE2(
+  matCountData    = round(micro), 
+  dfAnnotation    = micro_info,
+  boolCaseCtrl    = TRUE,
+  vecConfounders  = NULL,
+  scaNProc        = 8 )
+
+head(microImpulseDE2$dfImpulseDE2Results)
+
+library(ComplexHeatmap)
+
+microAD_ht <- plotHeatmap(
+  objectImpulseDE2       = microImpulseDE2,
+  strCondition           = "case",
+  boolIdentifyTransients = FALSE,
+  scaQThres              = 0.05)
+
+# Heatmap of global expression profiles using normalized counts
+png(filename = "microAD_raw_ht.png", width = 720, height = 1280)
+draw(microAD_ht$complexHeatmapRaw)
+dev.off()
+
+# Heatmap of global expression profiles using impulse model
+png(filename = "microAD_raw_ht.png", width = 720, height = 1280)
+draw(microAD_ht$complexHeatmapFit)
+dev.off()
+
+microWT_ht <- plotHeatmap(
+  objectImpulseDE2       = microImpulseDE2,
+  strCondition           = "control",
+  boolIdentifyTransients = FALSE,
+  scaQThres              = 0.05)
+
+png(filename = "microWT_raw_ht.png", width = 720, height = 1280)
+draw(microWT_ht$complexHeatmapRaw)
+dev.off()
+
+png(filename = "microWT_raw_ht.png", width = 720, height = 1280)
+draw(microWT_ht$complexHeatmapFit)
+dev.off()
+
+astroImpulseDE2 <- runImpulseDE2(
+  matCountData    = round(astro), 
+  dfAnnotation    = astro_info,
+  boolCaseCtrl    = TRUE,
+  vecConfounders  = NULL,
+  scaNProc        = 8 )
+
+head(astroImpulseDE2$dfImpulseDE2Results)
+
+astroAD_ht <- plotHeatmap(
+  objectImpulseDE2       = astroImpulseDE2,
+  strCondition           = "case",
+  boolIdentifyTransients = FALSE,
+  scaQThres              = 0.05)
+
+png(filename = "astroAD_impulse_ht.png", width = 720, height = 1280)
+draw(astroAD_ht$complexHeatmapFit)
+dev.off()
+
+astroWT_ht <- plotHeatmap(
+  objectImpulseDE2       = astroImpulseDE2,
+  strCondition           = "control",
+  boolIdentifyTransients = FALSE,
+  scaQThres              = 0.05)
+
+png(filename = "astroWT_impulse_ht.png", width = 720, height = 1280)
+draw(astroAD_ht$complexHeatmapFit)
+dev.off()
+
+library(ggplot2)
+
+# plot expression trajectories with 10 lowest q-values for each cell type
+micro_plots <- plotGenes(vecGeneIDs = NULL, scaNTopIDs = 10, objectImpulseDE2 = microImpulseDE2, boolCaseCtrl = TRUE, dirOut = "./", strFileName = "micro_gene_plots.pdf", vecRefPval = NULL, strNameRefMethod = NULL)
+
+astro_plots <- plotGenes(vecGeneIDs = NULL, scaNTopIDs = 10, objectImpulseDE2 = astroImpulseDE2, boolCaseCtrl = TRUE, dirOut = "./", strFileName = "astro_gene_plots.pdf", vecRefPval = NULL, strNameRefMethod = NULL)
